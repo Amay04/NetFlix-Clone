@@ -45,16 +45,15 @@ export const signup = async (req,res)=> {
             username,
             image
         })
-
+        
             generateTokenAndSetCookie(newUser._id, res);
             await newUser.save();
-            res.status(201).json({success:true, user:{
+            res.status(201).json({success:true, 
+                user:{
                 ...newUser._doc,
-                password:""
+                password:"",
             }})
-        
 
-      
     } catch (error) {
         console.log("Error in signup controller" + error.message);
         
@@ -62,6 +61,43 @@ export const signup = async (req,res)=> {
     }
 }
 
-export const login =  (req,res)=> res.send("Login route")
+export const login = async (req,res)=>{
+  try  { 
+        const {email, password} = req.body;
 
-export const logout =  (req,res)=> res.send("Log out route")
+    
+    if(!email || !password){
+        return res.status(400).json({success:false, message:"All fields are required"})
+    }
+
+    const user = await User.findOne({email:email})
+    if(!user) return res.status(404).json({success:false, message:"Invalid Credentials"});
+
+    const isPasswordCorrect = await bycrypt.compare(password, user.password);
+
+    if(!isPasswordCorrect) return res.status(404).json({success:false, message:"Invalid Credentials"});
+
+    generateTokenAndSetCookie(user._id, res);
+    res.status(200).json({success:true, 
+        user:{
+        ...user._doc,
+    }})
+
+} catch (error) {
+    console.log("Error is login controller", error.message);
+    res.status(500).json({success:false, message:"Internal server error"})
+    
+}
+
+}
+
+export const logout =  (req,res)=> {
+    try {
+        res.clearCookie("jwt-netflix");
+        res.status(200).json({success: true, message: "Logged out successfully"});
+    } catch (error) {
+        console.log("Error in signup controller" + error.message);
+        
+        res.status(500).json({success:false, message:"Internal server error"})
+    }
+}
