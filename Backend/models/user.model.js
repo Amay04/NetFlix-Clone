@@ -20,7 +20,7 @@ const userSchema = mongoose.Schema({
         type:String,
         default:""
     },
-    serachHistory:{
+    searchHistory:{
         type:Array,
         default:[]
     }
